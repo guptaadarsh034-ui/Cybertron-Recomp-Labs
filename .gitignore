@@ -1,0 +1,24 @@
+# Build outputs
+build/
+out/
+dist/
+*.o
+*.a
+*.so
+*.apk
+*.aab
+
+# Local research inputs and proprietary game data — never commit these
+local-inputs/
+game-files/
+*.xex
+*.iso
+*.xiso
+*.xbe
+
+# Local environment
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
