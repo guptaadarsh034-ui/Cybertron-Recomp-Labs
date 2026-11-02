@@ -21,6 +21,9 @@ def decode_word(word: int, address: int = 0) -> str:
     if not 0 <= word <= 0xFFFFFFFF:
         raise ValueError("instruction word must be between 0 and 0xffffffff")
 
+    if word == 0x60000000:
+        return "nop"
+
     op = word >> 26
     rt_rs = (word >> 21) & 31
     ra = (word >> 16) & 31
@@ -57,8 +60,6 @@ def decode_word(word: int, address: int = 0) -> str:
         bo = (word >> 21) & 31
         bi = (word >> 16) & 31
         return f"bclr BO={bo}, BI={bi}, LK={word & 1}"
-    if word == 0x60000000:
-        return "nop"
     return f".long 0x{word:08x}  # unsupported primary opcode {op}"
 
 
