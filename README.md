@@ -52,6 +52,28 @@ The project will grow incrementally. Suggested areas:
 - Prefer public documentation and original test fixtures.
 - This is an independent research project and is not affiliated with or endorsed by Hasbro, Activision, or the Transformers franchise owners.
 
+## First runnable tool: PowerPC word inspector
+
+A tiny educational inspector now lives at `tools/ppc_inspect.py`. It decodes a deliberately limited subset of 32-bit PowerPC instructions from **synthetic hexadecimal words**. It is not a full disassembler, XEX parser, or recompiler.
+
+Example (works in Python 3, no extra packages required):
+
+```sh
+python tools/ppc_inspect.py 38600001 60000000 48000008 --address 0x100
+```
+
+Run its unit tests from the repository root:
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+The inspector currently recognizes a small subset including `addi`, `addis`, `ori`, `oris`, `lwz`, `stw`, `b`, `bc`, `bclr`, and `nop`. Unknown words are preserved as `.long` output rather than guessed. This is a learning/test harness only; it does not read game files or produce executable native code.
+
+## Upstream toolchain research
+
+See [upstream-tools.md](docs/upstream-tools.md) for the first comparison of Xbox 360 recompilation projects. A second important code-generation reference is [hedge-dev/XenonRecomp](https://github.com/hedge-dev/XenonRecomp), which converts Xbox 360 executable code to C++ but does not provide the complete runtime a game needs. Its ARM64-related implementation is worth examining, but must not be confused with a ready-to-run Android game port.
+
 ## Current next step
 
 Start with a written executable-identification report: file extension, file size, and locally observed file signature. Keep the actual game file private. No claims of successful recompilation or Android compatibility should be made until demonstrated by a reproducible test.
