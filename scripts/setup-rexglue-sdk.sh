@@ -7,6 +7,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SDK_DIR="${ROOT}/thirdparty/rexglue-sdk"
 SDK_URL="https://github.com/rexglue/rexglue-sdk.git"
 SDK_TAG="v0.10.0"
+SDK_COMMIT="f5337cdc947ff6d4c4196737e2c807a48f2a1fc2"
 
 command -v git >/dev/null 2>&1 || { echo "error: git is required" >&2; exit 1; }
 
@@ -22,9 +23,9 @@ if [[ -e "${SDK_DIR}" ]]; then
     exit 1
   fi
 
-  actual_tag="$(git -C "${SDK_DIR}" describe --tags --exact-match HEAD 2>/dev/null || true)"
-  if [[ "${actual_tag}" != "${SDK_TAG}" ]]; then
-    echo "error: SDK checkout is not exactly ${SDK_TAG} (found '${actual_tag:-untagged}'); refusing to reset it" >&2
+  actual_commit="$(git -C "${SDK_DIR}" rev-parse HEAD)"
+  if [[ "${actual_commit}" != "${SDK_COMMIT}" ]]; then
+    echo "error: SDK checkout is not the pinned commit ${SDK_COMMIT} (found ${actual_commit}); refusing to reset it" >&2
     exit 1
   fi
 
@@ -39,9 +40,9 @@ fi
 
 git -C "${SDK_DIR}" submodule update --init --recursive --depth 1
 
-actual_tag="$(git -C "${SDK_DIR}" describe --tags --exact-match HEAD 2>/dev/null || true)"
-if [[ "${actual_tag}" != "${SDK_TAG}" ]]; then
-  echo "error: SDK tag verification failed after checkout" >&2
+actual_commit="$(git -C "${SDK_DIR}" rev-parse HEAD)"
+if [[ "${actual_commit}" != "${SDK_COMMIT}" ]]; then
+  echo "error: SDK commit verification failed (expected ${SDK_COMMIT}, found ${actual_commit})" >&2
   exit 1
 fi
 
@@ -50,5 +51,5 @@ if git -C "${SDK_DIR}" submodule status --recursive | grep -Eq '^[-+U]'; then
   exit 1
 fi
 
-echo "Prepared ReXGlue SDK ${SDK_TAG} at ${SDK_DIR}"
+echo "Prepared ReXGlue SDK ${SDK_TAG} (${SDK_COMMIT}) at ${SDK_DIR}"
 echo "Note: upstream SDK source is not Android-enabled without a separately verified adaptation."
