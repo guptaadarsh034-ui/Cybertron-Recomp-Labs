@@ -117,13 +117,13 @@ std::string run_self_test() {
                         cpu.gpr[7] == 1U && executed == 7U;
     std::ostringstream output;
     output << "Synthetic PowerPC test: " << (passed ? "PASS" : "FAIL")
-           << "\\nExecuted " << executed << " guest instructions"
-           << "\\nr5 = " << cpu.gpr[5]
-           << "\\nr6 (lwz) = " << cpu.gpr[6]
-           << "\\nr7 (branch target) = " << cpu.gpr[7]
-           << "\\nGuest PC = 0x" << std::hex << cpu.pc
-           << "\\nTarget ABI: arm64-v8a";
-    if (!passed) output << "\\nExpected r5=12, r6=12, r7=1, executed=7";
+           << "\nExecuted " << executed << " guest instructions"
+           << "\nr5 = " << cpu.gpr[5]
+           << "\nr6 (lwz) = " << cpu.gpr[6]
+           << "\nr7 (branch target) = " << cpu.gpr[7]
+           << "\nGuest PC = 0x" << std::hex << cpu.pc
+           << "\nTarget ABI: arm64-v8a";
+    if (!passed) output << "\nExpected r5=12, r6=12, r7=1, executed=7";
     return output.str();
 }
 } // namespace
