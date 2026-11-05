@@ -19,5 +19,5 @@
       }
     }
   },
-  "postCreateCommand": "python -m unittest discover -s tests -v && cmake -S runtime/ppc -B build/ppc && cmake --build build/ppc --parallel && ./build/ppc/ppc_smoke_test && bash .devcontainer/setup-android.sh && gradle -p android :app:assembleDebug"
+  "postCreateCommand": "python -m unittest discover -s tests -v && cmake -S runtime/ppc -B build/ppc && cmake --build build/ppc --parallel && ./build/ppc/ppc_smoke_test && bash .devcontainer/setup-android.sh && /opt/gradle-8.9/bin/gradle -p android :app:assembleDebug"
 }
