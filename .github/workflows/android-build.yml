@@ -23,7 +23,7 @@ jobs:
       - name: Install pinned host compiler and build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-18 ninja-build
+          sudo apt-get install -y clang-18 ninja-build pkg-config libx11-xcb-dev libwayland-dev
           cmake --version
           clang-18 --version
           cmake --version | head -n 1 | grep -E 'version 3\.(2[5-9]|[3-9][0-9])|version [4-9]\.' >/dev/null
@@ -40,7 +40,6 @@ jobs:
             -DCMAKE_CXX_COMPILER=clang++-18 \
             -DREXGLUE_ENABLE_TRACY=OFF \
             -DREXGLUE_BUILD_TESTS=OFF \
-            -DREXGLUE_ENABLE_DESKTOP_SDL_BACKENDS=OFF
 
       - name: Build ReXGlue host CLI
         run: cmake --build out/build/rexglue-host --target rexglue --parallel 2
