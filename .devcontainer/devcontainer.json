@@ -19,5 +19,5 @@
       }
     }
   },
-  "postCreateCommand": "python -m unittest discover -s tests -v && cmake -S runtime/ppc -B build/ppc && cmake --build build/ppc --parallel && ./build/ppc/ppc_smoke_test"
+  "postCreateCommand": "python -m unittest discover -s tests -v && cmake -S runtime/ppc -B build/ppc && cmake --build build/ppc --parallel && ./build/ppc/ppc_smoke_test && bash .devcontainer/setup-android.sh"
 }
