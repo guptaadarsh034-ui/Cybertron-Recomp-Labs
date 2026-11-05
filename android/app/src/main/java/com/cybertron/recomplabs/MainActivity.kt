@@ -17,7 +17,7 @@ class MainActivity : Activity() {
     private external fun runSelfTest(): String
     companion object {
         private const val PICK_FILE = 4103
-        private const val BUILD = "CRL-ANDROID-004"
+        private const val BUILD = "CRL-ANDROID-005"
         private val BG = 0xFF0A0F18.toInt()
         private val PANEL = 0xFF141E2B.toInt()
         private val FG = 0xFFEAF2FA.toInt()
@@ -49,7 +49,7 @@ class MainActivity : Activity() {
         root.addView(text("ANDROID ARM64 RESEARCH BUILD", 12f, MUTED, true), lp(18))
 
         val build = panel()
-        build.addView(text("MILESTONE 3  /  XEX PREFLIGHT", 13f, TEAL, true), lp(8))
+        build.addView(text("MILESTONE 4  /  PPC CORE", 13f, TEAL, true), lp(8))
         build.addView(text("Version $version  •  $BUILD", 14f, FG, true), lp(5))
         build.addView(text("Target: Android ARM64", 12f, MUTED))
         root.addView(build, lp(16))
@@ -85,9 +85,9 @@ class MainActivity : Activity() {
 
         val limits = panel()
         limits.addView(text("CURRENT CAPABILITIES", 12f, TEAL, true), lp(8))
-        limits.addView(text("✓ Synthetic PowerPC instruction test", 13f, FG), lp(5))
-        limits.addView(text("✓ Local file metadata and 4-byte signature check", 13f, FG), lp(5))
-        limits.addView(text("— No XEX parsing or recompilation yet", 13f, MUTED), lp(5))
+        limits.addView(text("✓ Bounded PowerPC interpreter (8-instruction subset)", 13f, FG), lp(5))
+        limits.addView(text("✓ Local file metadata and XEX signature preflight", 13f, FG), lp(5))
+        limits.addView(text("— No complete XEX parsing or static recompilation yet", 13f, MUTED), lp(5))
         limits.addView(text("— No game boot, graphics, audio or playable FPS yet", 13f, MUTED))
         root.addView(limits, lp(16))
         root.addView(text("RESEARCH PROTOTYPE  •  NO GAME DATA UPLOADED", 10f, MUTED, true))
