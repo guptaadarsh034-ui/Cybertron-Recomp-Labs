@@ -30,7 +30,7 @@ jobs:
       - name: Check out pinned ReXGlue SDK
         run: |
           git clone --depth 1 --branch v0.10.0 https://github.com/rexglue/rexglue-sdk.git thirdparty/rexglue-sdk
-          git -C thirdparty/rexglue-sdk submodule update --init --depth 1
+          git -C thirdparty/rexglue-sdk submodule update --init --recursive --depth 1
 
       - name: Configure ReXGlue host CLI
         run: |
@@ -44,6 +44,11 @@ jobs:
 
       - name: Build ReXGlue host CLI
         run: cmake --build out/build/rexglue-host --target rexglue --parallel 2
+
+      - name: Smoke-test ReXGlue CLI
+        run: |
+          test -x thirdparty/rexglue-sdk/out/linux-amd64/rexglue
+          thirdparty/rexglue-sdk/out/linux-amd64/rexglue --help
 
   android-debug:
     runs-on: ubuntu-latest
