@@ -148,10 +148,19 @@ RunResult run_program(const std::vector<std::uint32_t>& program,
         result.error = "Instruction limit must be greater than zero";
         return result;
     }
+    const std::uint64_t program_bytes = program.size() * 4ULL;
+    if (entry_pc >= program_bytes) {
+        result.error = "Entry PC is outside the loaded program";
+        return result;
+    }
 
     while (result.executed < instruction_limit) {
-        if (result.cpu.pc >= program.size() * 4ULL) {
+        if (result.cpu.pc == program_bytes) {
             result.ok = true;
+            return result;
+        }
+        if (result.cpu.pc > program_bytes) {
+            result.error = "Guest PC is outside the loaded program";
             return result;
         }
         if ((result.cpu.pc & 3U) != 0U) {
@@ -159,12 +168,18 @@ RunResult run_program(const std::vector<std::uint32_t>& program,
             return result;
         }
         const std::size_t index = result.cpu.pc / 4U;
-        const StepResult step = execute_one(result.cpu, program[index]);
+        const std::uint32_t instruction = program[index];
+        const StepResult step = execute_one(result.cpu, instruction);
         if (!step.ok) {
             result.error = step.error;
             return result;
         }
         ++result.executed;
+        if ((instruction >> 26U) == 18U &&
+            static_cast<std::uint64_t>(result.cpu.pc) >= program_bytes) {
+            result.error = "Unconditional branch target is outside the loaded program";
+            return result;
+        }
     }
     result.error = "Instruction limit reached (possible guest loop)";
     return result;
