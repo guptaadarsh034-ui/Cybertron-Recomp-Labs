@@ -84,7 +84,7 @@ jobs:
             "platforms;android-35" \
             "build-tools;35.0.0" \
             "ndk;27.2.12479018" \
-            "cmake;3.22.1"
+            "cmake;3.31.1"
 
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
