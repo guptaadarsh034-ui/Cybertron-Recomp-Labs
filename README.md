@@ -72,9 +72,9 @@ The inspector currently recognizes a small subset including `addi`, `addis`, `or
 
 ## Android ARM64 prototype
 
-The initial Android app prototype is under [android/](android/) and its scope is documented in [android-arm64-milestone-1.md](docs/android-arm64-milestone-1.md). It contains a Kotlin UI and a small C++/JNI interpreter for three synthetic PowerPC instructions (`addi`, `ori`, and `add`). Its test program should calculate r5=12.
+The Android app is under [android/](android/). Version **0.3.0** includes a synthetic PowerPC interpreter self-test and a local executable preflight screen. The preflight reads only a selected file's name, reported size, and first four bytes, identifying an `XEX2` signature when present. It does not upload, parse, decrypt, recompile, or execute the file.
 
-This prototype is **not** a static recompiler, Xbox 360 emulator, XEX loader, or playable game build. It has not yet been built or verified on the target OPPO device. The existing Codespaces container is configured for Python/CMake research and does not currently install the Android SDK/NDK; use an Android SDK-equipped environment to build the APK.
+This app is not a static recompiler, Xbox 360 emulator, XEX loader, or playable game build. A recognized XEX2 signature does not mean the game can boot. See [Android ARM64 Milestone 3](docs/android-arm64-milestone-3.md) for scope and limitations. GitHub Actions packages a versioned ARM64 APK and ZIP; successful CI means compilation and packaging only, not phone runtime validation.
 
 ## Upstream toolchain research
 
