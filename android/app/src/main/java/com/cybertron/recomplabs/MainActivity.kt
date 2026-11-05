@@ -25,7 +25,7 @@ class MainActivity : Activity() {
         }
         val info = packageManager.getPackageInfo(packageName, 0)
         val subtitle = TextView(this).apply {
-            text = "Milestone 3 • XEX preflight + ARM64 runtime\nVersion \${info.versionName} (\${info.versionCode})"
+            text = "Milestone 3 • XEX preflight + ARM64 runtime\nVersion ${info.versionName} (${info.versionCode})"
             textSize = 14f; gravity = Gravity.CENTER
         }
         output = TextView(this).apply {
@@ -36,7 +36,7 @@ class MainActivity : Activity() {
             text = "RUN POWERPC SELF-TEST"
             setOnClickListener {
                 output.text = try { runSelfTest() }
-                catch (error: UnsatisfiedLinkError) { "Native runtime failed to load: \${error.message}" }
+                catch (error: UnsatisfiedLinkError) { "Native runtime failed to load: ${error.message}" }
             }
         }
         val inspectButton = Button(this).apply {
@@ -89,15 +89,15 @@ class MainActivity : Activity() {
             }
             if (count == 4) bytes.toString(Charsets.US_ASCII) else "SHORT"
         } ?: "UNREADABLE"
-        val sizeText = if (metadata.second >= 0) "\${metadata.second} bytes" else "size unavailable"
+        val sizeText = if (metadata.second >= 0) "${metadata.second} bytes" else "size unavailable"
         val identification = when (signature) {
             "XEX2" -> "XEX2 signature recognized."
             "SHORT" -> "File is shorter than a 4-byte signature."
             "UNREADABLE" -> "Could not read the selected file."
-            else -> "Unknown 4-byte signature: \${signature.toByteArray(Charsets.US_ASCII).joinToString(" ") { "%02X".format(it) }}"
+            else -> "Unknown 4-byte signature: ${signature.toByteArray(Charsets.US_ASCII).joinToString(" ") { "%02X".format(it) }}"
         }
-        "Local file inspection (no upload)\nName: \${metadata.first}\nSize: $sizeText\nSignature: $signature\n\n$identification\n\nPreflight only: this does NOT parse, decrypt, recompile, or boot the game."
+        "Local file inspection (no upload)\nName: ${metadata.first}\nSize: $sizeText\nSignature: $signature\n\n$identification\n\nPreflight only: this does NOT parse, decrypt, recompile, or boot the game."
     } catch (error: Exception) {
-        "Could not inspect file: \${error.javaClass.simpleName}: \${error.message}"
+        "Could not inspect file: ${error.javaClass.simpleName}: ${error.message}"
     }
 }
