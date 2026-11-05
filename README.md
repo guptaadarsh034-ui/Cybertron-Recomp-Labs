@@ -70,6 +70,12 @@ python -m unittest discover -s tests -v
 
 The inspector currently recognizes a small subset including `addi`, `addis`, `ori`, `oris`, `lwz`, `stw`, `b`, `bc`, `bclr`, and `nop`. Unknown words are preserved as `.long` output rather than guessed. This is a learning/test harness only; it does not read game files or produce executable native code.
 
+## Android ARM64 prototype
+
+The initial Android app prototype is under [android/](android/) and its scope is documented in [android-arm64-milestone-1.md](docs/android-arm64-milestone-1.md). It contains a Kotlin UI and a small C++/JNI interpreter for three synthetic PowerPC instructions (`addi`, `ori`, and `add`). Its test program should calculate r5=12.
+
+This prototype is **not** a static recompiler, Xbox 360 emulator, XEX loader, or playable game build. It has not yet been built or verified on the target OPPO device. The existing Codespaces container is configured for Python/CMake research and does not currently install the Android SDK/NDK; use an Android SDK-equipped environment to build the APK.
+
 ## Upstream toolchain research
 
 See [upstream-tools.md](docs/upstream-tools.md) for the first comparison of Xbox 360 recompilation projects. A second important code-generation reference is [hedge-dev/XenonRecomp](https://github.com/hedge-dev/XenonRecomp), which converts Xbox 360 executable code to C++ but does not provide the complete runtime a game needs. Its ARM64-related implementation is worth examining, but must not be confused with a ready-to-run Android game port.
