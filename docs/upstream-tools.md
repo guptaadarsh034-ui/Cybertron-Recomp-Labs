@@ -63,3 +63,33 @@ A phone can be used to read source, edit files, and trigger supported cloud buil
 - [ ] Compare the existing app's Gradle/CMake setup with the reference before changing architecture.
 - [ ] Keep synthetic fixtures and test logs in the repository; keep game executables, assets, firmware, and keys out of Git.
 - [ ] Only call the first milestone complete when the SDK builds reproducibly in CI. This would prove toolchain integration—not Transformers bootability.
+
+
+## 5. Additional Android build reference: Hells Gate / Dante's Inferno
+
+Repository: https://github.com/deivid22srk/hells-gate-recomp-android
+
+This is the most directly relevant Android ARM64 reference found so far: it documents ReXGlue v0.10.0, SDL3, Vulkan, Android NDK/Gradle, and a separate host-side code-generation step. Treat it as an architectural reference, not as a source of game-specific generated code.
+
+## 6. ReXGlue automation example: rexauto
+
+Repository: https://github.com/Player124413/rexauto
+
+This project describes an automated pipeline that drives ReXGlue code generation and supports an Android APK workflow using an Android patch set based on the Hells Gate project. It may help us understand how to separate host codegen from Android compilation. Before adapting anything, inspect the exact scripts, licenses, CI secrets, and pinned SDK/patch versions. Do not copy its secret-dependent workflow or assume it works without local game-specific input.
+
+## 7. More game projects for comparison
+
+- Army of Two Recomp: https://github.com/nikolaygorb/ArmyOfTwoRecomp
+- Perfect Dark Zero Recomp: https://github.com/nikolaygorb/PerfectDarkZeroRecomp
+- Wet Recomp: https://github.com/nikolaygorb/WetRecomp
+- Curated list: https://github.com/abduznik/awesome-x360-recomps
+
+These can show how other projects configure manifests, resolve function boundaries, apply generated-code fixes, and organize game-specific runtime hooks. Their game code and data are not reusable as Transformers code. Check each repository's license and maturity before relying on it.
+
+## Updated priority
+
+1. First inspect rexauto only to learn its reproducible build orchestration; never depend on its private archive/secret setup.
+2. Keep the pinned ReXGlue host CLI CI job as the first toolchain smoke test.
+3. Compare the Hells Gate Android patches and CMake configuration with this project's current app.
+4. Create a separate integration branch before replacing the existing prototype, so the known diagnostic app remains available until the new build is proven.
+5. Do not describe a project as bootable until its generated Transformers code, runtime and game boot are actually tested.
