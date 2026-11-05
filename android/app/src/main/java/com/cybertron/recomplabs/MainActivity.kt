@@ -6,7 +6,6 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
@@ -15,90 +14,117 @@ import android.widget.TextView
 
 class MainActivity : Activity() {
     private external fun runSelfTest(): String
+
     companion object {
-        private const val PICK_FILE = 4103
-        private const val BUILD = "CRL-ANDROID-005"
-        private val BG = 0xFF0A0F18.toInt()
-        private val PANEL = 0xFF141E2B.toInt()
-        private val FG = 0xFFEAF2FA.toInt()
-        private val MUTED = 0xFF9AAABD.toInt()
-        private val TEAL = 0xFF45D6C5.toInt()
-        private val GOLD = 0xFFFFC46B.toInt()
+        private const val PICK_GAME_FILE = 5106
+        private const val BUILD_ID = "CRL-BOOT-PREFLIGHT-001"
+        private const val BG = 0xFF080D16.toInt()
+        private const val SURFACE = 0xFF121D2A.toInt()
+        private const val TEXT = 0xFFEAF1F8.toInt()
+        private const val MUTED = 0xFF9AAABD.toInt()
+        private const val CYAN = 0xFF55D9D0.toInt()
+        private const val ORANGE = 0xFFFFBD69.toInt()
+
         init { System.loadLibrary("ppc_runtime") }
     }
-    private lateinit var output: TextView
-    private lateinit var status: TextView
+
+    private lateinit var console: TextView
+    private lateinit var state: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = BG
         window.navigationBarColor = BG
+        window.decorView.setBackgroundColor(BG)
+
         val version = packageManager.getPackageInfo(packageName, 0).versionName ?: "unknown"
-        val root = LinearLayout(this).apply {
+        val page = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(20), dp(20), dp(24))
+            setPadding(dp(20), dp(24), dp(20), dp(28))
             setBackgroundColor(BG)
         }
         val scroll = ScrollView(this).apply {
             isFillViewport = true
             setBackgroundColor(BG)
-            addView(root)
+            addView(page)
         }
-        root.addView(text("CYBERTRON", 13f, TEAL, true), lp(3))
-        root.addView(text("RECOMP LABS", 30f, FG, true), lp(5))
-        root.addView(text("ANDROID ARM64 RESEARCH BUILD", 12f, MUTED, true), lp(18))
 
-        val build = panel()
-        build.addView(text("MILESTONE 4  /  PPC CORE", 13f, TEAL, true), lp(8))
-        build.addView(text("Version $version  •  $BUILD", 14f, FG, true), lp(5))
-        build.addView(text("Target: Android ARM64", 12f, MUTED))
-        root.addView(build, lp(16))
+        page.addView(text("CYBERTRON RECOMP LABS", 25f, TEXT, true), margin(5))
+        page.addView(text("XBOX 360 → ANDROID ARM64", 12f, CYAN, true), margin(18))
 
-        root.addView(text("RUNTIME TESTS", 12f, MUTED, true), lp(8))
-        val test = action("RUN POWERPC SELF-TEST", TEAL)
-        test.setOnClickListener {
-            status.text = "TEST COMPLETE"
-            status.setTextColor(TEAL)
-            output.text = try { runSelfTest() }
-            catch (e: Exception) { "RUNTIME ERROR\n${e.javaClass.simpleName}: ${e.message}" }
-        }
-        root.addView(test, lp(10))
-        val inspect = action("INSPECT LOCAL EXECUTABLE", GOLD)
-        inspect.setOnClickListener {
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+        val identity = card()
+        identity.addView(text("FIRST BOOT-FEASIBILITY BUILD", 12f, CYAN, true), margin(9))
+        identity.addView(text("Version $version", 18f, TEXT, true), margin(4))
+        identity.addView(text("Build ID: $BUILD_ID", 11f, MUTED, true), margin(4))
+        identity.addView(text("Device ABI: ${android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "unknown"}", 12f, MUTED))
+        page.addView(identity, margin(16))
+
+        page.addView(text("01  /  GAME FILE CHECK", 12f, MUTED, true), margin(8))
+        val select = actionButton("SELECT XEX AND CHECK BOOT READINESS", ORANGE)
+        select.setOnClickListener {
+            val picker = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "*/*"
             }
-            startActivityForResult(intent, PICK_FILE)
+            startActivityForResult(picker, PICK_GAME_FILE)
         }
-        root.addView(inspect, lp(16))
+        page.addView(select, margin(8))
+        page.addView(text("Reads the XEX2 header and declared PE signature locally. The file is not uploaded or executed.", 12f, MUTED), margin(16))
 
-        val console = panel()
-        console.addView(text("OUTPUT CONSOLE", 12f, TEAL, true), lp(8))
-        status = text("READY  •  WAITING FOR TEST", 11f, MUTED, true)
-        console.addView(status, lp(10))
-        output = text("No test has been run. Choose an action above.", 13f, FG)
-        output.typeface = Typeface.MONOSPACE
-        output.setLineSpacing(dp(3).toFloat(), 1f)
-        console.addView(output)
-        root.addView(console, lp(16))
+        page.addView(text("02  /  NATIVE CPU SELF-TEST", 12f, MUTED, true), margin(8))
+        val test = actionButton("RUN SYNTHETIC POWERPC TEST", CYAN)
+        test.setOnClickListener {
+            state.text = "SYNTHETIC TEST FINISHED"
+            state.setTextColor(CYAN)
+            console.text = try {
+                runSelfTest()
+            } catch (e: Throwable) {
+                "NATIVE TEST FAILED\n${e.javaClass.simpleName}: ${e.message ?: "No details"}"
+            }
+        }
+        page.addView(test, margin(16))
 
-        val limits = panel()
-        limits.addView(text("CURRENT CAPABILITIES", 12f, TEAL, true), lp(8))
-        limits.addView(text("✓ Bounded PowerPC interpreter (8-instruction subset)", 13f, FG), lp(5))
-        limits.addView(text("✓ Local file metadata and XEX signature preflight", 13f, FG), lp(5))
-        limits.addView(text("— No complete XEX parsing or static recompilation yet", 13f, MUTED), lp(5))
-        limits.addView(text("— No game boot, graphics, audio or playable FPS yet", 13f, MUTED))
-        root.addView(limits, lp(16))
-        root.addView(text("RESEARCH PROTOTYPE  •  NO GAME DATA UPLOADED", 10f, MUTED, true))
+        val outputCard = card()
+        outputCard.addView(text("DIAGNOSTIC REPORT", 12f, CYAN, true), margin(10))
+        state = text("WAITING FOR INPUT", 11f, MUTED, true)
+        outputCard.addView(state, margin(10))
+        console = text(
+            "Choose a local XEX file to run the boot-readiness preflight, or run the synthetic CPU test.",
+            13f, TEXT
+        ).apply {
+            typeface = Typeface.MONOSPACE
+            setLineSpacing(dp(3).toFloat(), 1f)
+        }
+        outputCard.addView(console)
+        page.addView(outputCard, margin(16))
+
+        val reality = card()
+        reality.addView(text("HONEST STATUS", 12f, CYAN, true), margin(8))
+        reality.addView(text("This APK cannot boot the game yet.", 15f, ORANGE, true), margin(7))
+        reality.addView(text("The preflight can identify a basic XEX2 container structure. It does not decrypt or decompress game sections, map the executable, resolve Xbox imports, emulate the Xbox kernel, or render Xenos graphics/audio.", 12f, TEXT), margin(8))
+        reality.addView(text("A passing file check means only that selected header checks passed. It is not proof that the game can run on this phone.", 12f, MUTED))
+        page.addView(reality, margin(16))
+
+        page.addView(text("OFFLINE LOCAL INSPECTION  •  NO GAME DATA UPLOAD", 10f, MUTED, true))
         setContentView(scroll)
     }
 
-    private fun panel() = LinearLayout(this).apply {
-        orientation = LinearLayout.VERTICAL
-        setPadding(dp(16), dp(15), dp(16), dp(15))
-        background = shape(PANEL, 14)
+    @Deprecated("Legacy document-picker callback kept to avoid extra dependencies")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != PICK_GAME_FILE || resultCode != RESULT_OK) return
+        val uri: Uri = data?.data ?: return
+        state.text = "XEX STRUCTURAL PREFLIGHT FINISHED"
+        state.setTextColor(ORANGE)
+        console.text = XexInspector.inspect(contentResolver, uri)
     }
+
+    private fun card() = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(dp(16), dp(16), dp(16), dp(16))
+        background = rounded(SURFACE, 14)
+    }
+
     private fun text(value: String, size: Float, color: Int, bold: Boolean = false) =
         TextView(this).apply {
             text = value
@@ -106,67 +132,30 @@ class MainActivity : Activity() {
             setTextColor(color)
             if (bold) setTypeface(Typeface.DEFAULT, Typeface.BOLD)
         }
-    private fun action(value: String, color: Int) = Button(this).apply {
+
+    private fun actionButton(value: String, color: Int) = Button(this).apply {
         text = value
-        textSize = 13f
+        textSize = 12f
         isAllCaps = false
         setTextColor(BG)
         setTypeface(Typeface.DEFAULT, Typeface.BOLD)
-        background = shape(color, 10)
-        minHeight = dp(54)
+        background = rounded(color, 10)
+        minHeight = dp(56)
         gravity = Gravity.CENTER
         elevation = 0f
         stateListAnimator = null
     }
-    private fun shape(color: Int, radius: Int) = GradientDrawable().apply {
+
+    private fun rounded(color: Int, radius: Int) = GradientDrawable().apply {
         setColor(color)
         cornerRadius = dp(radius).toFloat()
     }
-    private fun lp(bottom: Int = 0) = LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+
+    private fun margin(bottom: Int = 0) = LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT
     ).apply { if (bottom > 0) bottomMargin = dp(bottom) }
-    private fun dp(v: Int) = (v * resources.displayMetrics.density + 0.5f).toInt()
 
-    @Deprecated("Legacy result callback retained for compatibility")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode != PICK_FILE || resultCode != RESULT_OK) return
-        val uri: Uri = data?.data ?: return
-        status.text = "FILE INSPECTION COMPLETE"
-        status.setTextColor(GOLD)
-        output.text = inspect(uri)
-    }
-
-    private fun inspect(uri: Uri): String = try {
-        val metadata = contentResolver.query(
-            uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null
-        )?.use { c ->
-            if (c.moveToFirst()) {
-                val ni = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                val si = c.getColumnIndex(OpenableColumns.SIZE)
-                (if (ni >= 0) c.getString(ni) else "Selected file") to
-                    (if (si >= 0 && !c.isNull(si)) c.getLong(si) else -1L)
-            } else null
-        } ?: ("Selected file" to -1L)
-        val sig = contentResolver.openInputStream(uri)?.use { stream ->
-            val b = ByteArray(4)
-            var n = 0
-            while (n < 4) {
-                val r = stream.read(b, n, 4 - n)
-                if (r <= 0) break
-                n += r
-            }
-            if (n == 4) b.toString(Charsets.US_ASCII) else "SHORT"
-        } ?: "UNREADABLE"
-        val detail = when (sig) {
-            "XEX2" -> "XEX2 signature recognized."
-            "SHORT" -> "File is shorter than four bytes."
-            "UNREADABLE" -> "Could not read selected file."
-            else -> "Unknown signature bytes: " +
-                sig.toByteArray(Charsets.US_ASCII).joinToString(" ") { "%02X".format(it) }
-        }
-        "LOCAL FILE PREFLIGHT (NO UPLOAD)\nName: ${metadata.first}\nSize: ${if (metadata.second >= 0) "${metadata.second} bytes" else "unavailable"}\nSignature: $sig\n\n$detail\n\nMetadata and four-byte check only. This does NOT parse, decrypt, recompile or boot the game."
-    } catch (e: Exception) {
-        "INSPECTION ERROR\n${e.javaClass.simpleName}: ${e.message}"
-    }
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density + 0.5f).toInt()
 }
