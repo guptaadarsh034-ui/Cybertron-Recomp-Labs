@@ -2,7 +2,6 @@ package com.cybertron.recomplabs
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
@@ -19,12 +18,12 @@ class MainActivity : Activity() {
     companion object {
         private const val PICK_FILE = 4103
         private const val BUILD = "CRL-ANDROID-004"
-        private const val BG = 0xFF0A0F18.toInt()
-        private const val PANEL = 0xFF141E2B.toInt()
-        private const val FG = 0xFFEAF2FA.toInt()
-        private const val MUTED = 0xFF9AAABD.toInt()
-        private const val TEAL = 0xFF45D6C5.toInt()
-        private const val GOLD = 0xFFFFC46B.toInt()
+        private val BG = 0xFF0A0F18.toInt()
+        private val PANEL = 0xFF141E2B.toInt()
+        private val FG = 0xFFEAF2FA.toInt()
+        private val MUTED = 0xFF9AAABD.toInt()
+        private val TEAL = 0xFF45D6C5.toInt()
+        private val GOLD = 0xFFFFC46B.toInt()
         init { System.loadLibrary("ppc_runtime") }
     }
     private lateinit var output: TextView
