@@ -1,4 +1,4 @@
-name: Python tool tests
+name: Project tests
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  python-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -20,5 +20,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Run unit tests
+      - name: Run Python unit tests
         run: python -m unittest discover -s tests -v
+
+  ppc-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Configure C++ smoke test
+        run: cmake -S runtime/ppc -B build/ppc
+      - name: Build C++ interpreter
+        run: cmake --build build/ppc --parallel
+      - name: Run synthetic PowerPC program
+        run: ./build/ppc/ppc_smoke_test
