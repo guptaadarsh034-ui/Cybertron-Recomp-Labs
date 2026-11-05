@@ -6,6 +6,7 @@ plugins {
 android {
     namespace = "com.cybertron.recomplabs"
     compileSdk = 35
+    ndkVersion = "27.2.12479018"
 
     defaultConfig {
         applicationId = "com.cybertron.recomplabs"
@@ -15,11 +16,11 @@ android {
         versionName = "0.6.0"
         ndk { abiFilters += listOf("arm64-v8a") }
         externalNativeBuild {
-            cmake { cppFlags += listOf("-std=c++17", "-Wall", "-Wextra") }
+            cmake { cppFlags += listOf("-std=c++23", "-Wall", "-Wextra") }
         }
     }
     externalNativeBuild {
-        cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.22.1" }
+        cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.31.1" }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
