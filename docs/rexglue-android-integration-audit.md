@@ -6,6 +6,7 @@
 
 - Project: [ReXGlue SDK](https://github.com/rexglue/rexglue-sdk)
 - Version: `v0.10.0`
+- Verified release commit: `f5337cdc947ff6d4c4196737e2c807a48f2a1fc2`
 - License at that tag: BSD 3-Clause (see the SDK's `LICENSE` file).
 - Inspected upstream requirements: CMake 3.25 or newer, Clang 18 or newer, and C++23.
 - The inspected upstream root CMake configuration recognizes Windows, Linux, and macOS. It does not provide an Android platform branch in the unmodified configuration.
