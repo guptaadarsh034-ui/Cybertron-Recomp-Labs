@@ -8,9 +8,14 @@ dist/
 *.apk
 *.aab
 
-# Local research inputs and proprietary game data — never commit these
-local-inputs/
+# Third-party SDK checkout (recreated by pinned setup tooling)
+thirdparty/rexglue-sdk/
+
+# Private game inputs and generated title-specific code — never commit
+game/
 game-files/
+local-inputs/
+generated/private/
 *.xex
 *.iso
 *.xiso
