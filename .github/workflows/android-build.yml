@@ -5,6 +5,7 @@ on:
     branches: [main, integration/rexglue-android]
     paths:
       - "android/**"
+      - "scripts/**"
       - ".github/workflows/android-build.yml"
   workflow_dispatch:
 
