@@ -19,8 +19,11 @@ class MainActivity : Activity() {
         val title = TextView(this).apply {
             text = "CYBERTRON RECOMP LABS"; textSize = 22f; gravity = Gravity.CENTER
         }
+        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+        val appVersion = packageInfo.versionName ?: "unknown"
+        val appVersionCode = packageInfo.versionCode
         val subtitle = TextView(this).apply {
-            text = "Milestone 1 • Android ARM64 runtime prototype"
+            text = "Milestone 2 • Android ARM64 runtime prototype\nVersion $appVersion ($appVersionCode)"
             textSize = 14f; gravity = Gravity.CENTER
         }
         val output = TextView(this).apply {
