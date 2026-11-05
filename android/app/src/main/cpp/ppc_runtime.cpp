@@ -11,7 +11,8 @@ constexpr std::size_t kGuestMemorySize = 256;
 struct CpuState {
     std::array<std::uint32_t, 32> gpr{};
     std::array<std::uint8_t, kGuestMemorySize> memory{};
-    std::uint32_t pc = 0;\n    std::uint32_t lr = 0;
+    std::uint32_t pc = 0;
+    std::uint32_t lr = 0;
 };
 
 bool guest_address(CpuState& cpu, std::uint32_t base, std::int16_t displacement,
