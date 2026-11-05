@@ -29,8 +29,7 @@ jobs:
 
       - name: Check out pinned ReXGlue SDK
         run: |
-          git clone --depth 1 --branch v0.10.0 https://github.com/rexglue/rexglue-sdk.git thirdparty/rexglue-sdk
-          git -C thirdparty/rexglue-sdk submodule update --init --recursive --depth 1
+          bash scripts/setup-rexglue-sdk.sh
 
       - name: Configure ReXGlue host CLI
         run: |
