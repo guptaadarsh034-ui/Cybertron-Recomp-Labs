@@ -12,6 +12,33 @@ permissions:
   contents: read
 
 jobs:
+  rexglue-host-toolchain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install host build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang ninja-build
+
+      - name: Check out pinned ReXGlue SDK
+        run: |
+          git clone --depth 1 --branch v0.10.0 https://github.com/rexglue/rexglue-sdk.git thirdparty/rexglue-sdk
+          git -C thirdparty/rexglue-sdk submodule update --init --depth 1
+
+      - name: Configure ReXGlue host CLI
+        run: |
+          cmake -S thirdparty/rexglue-sdk -B out/build/rexglue-host -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DREXGLUE_ENABLE_TRACY=OFF \
+            -DREXGLUE_BUILD_TESTS=OFF \
+            -DREXGLUE_ENABLE_DESKTOP_SDL_BACKENDS=OFF
+
+      - name: Build ReXGlue host CLI
+        run: cmake --build out/build/rexglue-host --target rexglue --parallel 2
+
   android-debug:
     runs-on: ubuntu-latest
     steps:
