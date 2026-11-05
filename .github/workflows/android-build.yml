@@ -39,7 +39,7 @@ jobs:
             -DCMAKE_C_COMPILER=clang-18 \
             -DCMAKE_CXX_COMPILER=clang++-18 \
             -DREXGLUE_ENABLE_TRACY=OFF \
-            -DREXGLUE_BUILD_TESTS=OFF \
+            -DREXGLUE_BUILD_TESTS=OFF
 
       - name: Build ReXGlue host CLI
         run: cmake --build out/build/rexglue-host --target rexglue --parallel 2
