@@ -50,11 +50,11 @@ std::string run_self_test() {
     }
     std::ostringstream output;
     output << "Synthetic PowerPC test: " << (cpu.gpr[5] == 12U ? "PASS" : "FAIL")
-           << "\\nExecuted 3 guest instructions"
-           << "\\nr5 = " << cpu.gpr[5]
-           << "\\nGuest PC = 0x" << std::hex << cpu.pc
-           << "\\nTarget ABI: arm64-v8a";
-    if (cpu.gpr[5] != 12U) output << "\\nExpected r5 = 12";
+           << "\nExecuted 3 guest instructions"
+           << "\nr5 = " << cpu.gpr[5]
+           << "\nGuest PC = 0x" << std::hex << cpu.pc
+           << "\nTarget ABI: arm64-v8a";
+    if (cpu.gpr[5] != 12U) output << "\nExpected r5 = 12";
     return output.str();
 }
 } // namespace
