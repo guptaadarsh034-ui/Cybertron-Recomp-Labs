@@ -13,7 +13,9 @@ export ANDROID_SDK_ROOT="$ANDROID_HOME"
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:/opt/gradle-8.9/bin:$PATH"
 
 if [ ! -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
-  mkdir -p /tmp/android-cli "$ANDROID_HOME/cmdline-tools"
+  mkdir -p /tmp/android-cli
+  sudo mkdir -p "$ANDROID_HOME/cmdline-tools"
+  sudo chown -R "$(id -u):$(id -g)" "$ANDROID_HOME"
   curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/android-cli.zip
   unzip -q /tmp/android-cli.zip -d /tmp/android-cli
   sudo rm -rf "$ANDROID_HOME/cmdline-tools/latest"
