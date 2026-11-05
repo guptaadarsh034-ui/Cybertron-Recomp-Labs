@@ -11,7 +11,7 @@ constexpr std::size_t kGuestMemorySize = 256;
 struct CpuState {
     std::array<std::uint32_t, 32> gpr{};
     std::array<std::uint8_t, kGuestMemorySize> memory{};
-    std::uint32_t pc = 0;
+    std::uint32_t pc = 0;\n    std::uint32_t lr = 0;
 };
 
 bool guest_address(CpuState& cpu, std::uint32_t base, std::int16_t displacement,
@@ -72,7 +72,7 @@ bool execute_one(CpuState& cpu, std::uint32_t instruction, std::string& error) {
             const std::uint32_t target = (instruction & 2U)
                 ? static_cast<std::uint32_t>(displacement)
                 : static_cast<std::uint32_t>(static_cast<std::int64_t>(cpu.pc - 4) + displacement);
-            if ((instruction & 1U) != 0) cpu.gpr[0] = cpu.pc;
+            if ((instruction & 1U) != 0) cpu.lr = cpu.pc;
             cpu.pc = target;
             return true;
         }
