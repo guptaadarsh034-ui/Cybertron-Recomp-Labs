@@ -47,10 +47,23 @@ jobs:
       - name: Build Android ARM64 debug APK
         run: gradle -p android :app:assembleDebug --stacktrace
 
-      - name: Upload debug APK
+      - name: Package versioned APK ZIP
+        id: version
+        run: |
+          VERSION_NAME=$(sed -n 's/.*versionName = "\(.*\)"/\1/p' android/app/build.gradle.kts)
+          test -n "$VERSION_NAME"
+          echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          mkdir -p dist
+          cp "$APK_PATH" "dist/cybertron-recomp-labs-v${VERSION_NAME}-android-arm64.apk"
+          (cd dist && zip -j "cybertron-recomp-labs-v${VERSION_NAME}-android-arm64.zip" "cybertron-recomp-labs-v${VERSION_NAME}-android-arm64.apk")
+
+      - name: Upload versioned APK and ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: cybertron-recomp-labs-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: cybertron-recomp-labs-v${{ steps.version.outputs.name }}-android-arm64
+          path: |
+            dist/*.apk
+            dist/*.zip
           if-no-files-found: error
           retention-days: 14
