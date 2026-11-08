@@ -34,10 +34,14 @@ jobs:
 
       - name: Configure ReXGlue host CLI
         run: |
+          # ReXGlue v0.10.0's x86 host memory helpers use SSSE3/SSE4.1
+          # intrinsics. Set these on the host compiler only; they are not
+          # Android ARM64 flags and must never leak into the NDK build.
           cmake -S thirdparty/rexglue-sdk -B out/build/rexglue-host -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_COMPILER=clang-18 \
             -DCMAKE_CXX_COMPILER=clang++-18 \
+            -DCMAKE_CXX_FLAGS="-mssse3 -msse4.1" \
             -DREXGLUE_ENABLE_TRACY=OFF \
             -DREXGLUE_BUILD_TESTS=OFF \
             -DREXGLUE_ENABLE_DESKTOP_SDL_BACKENDS=OFF
