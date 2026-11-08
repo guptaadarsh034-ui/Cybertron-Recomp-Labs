@@ -18,6 +18,12 @@ Reference implementation for architecture and build-system research:
 
 These are references, not drop-in support for every Xbox 360 title. Compatibility depends on the selected game's executable, manifest, imported functions, graphics/audio paths, and runtime requirements.
 
+## Work log
+
+- Added x86-host-only `-mssse3 -msse4.1` flags to the ReXGlue v0.10.0 CI configure step to address the known `_mm_shuffle_epi8` target-feature compile failure. This is a proposed fix until a build is explicitly approved and verified; it does not change Android ARM64 compiler flags.
+- Expanded `.gitignore` for the local SDK checkout and generated game-specific source directories so proprietary inputs and generated output stay out of commits by default.
+- No build has been run yet, so the host-toolchain milestone remains unverified.
+
 ## Milestones
 
 ### 1. Reproducible SDK/toolchain setup
