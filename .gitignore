@@ -8,7 +8,11 @@ dist/
 *.apk
 *.aab
 
-# Local research inputs and proprietary game data — never commit these
+# Local research inputs, SDK checkout, generated game code, and proprietary data — never commit these
+/game/
+/generated/
+/thirdparty/rexglue-sdk/
+/android/app/src/main/cpp/generated/
 local-inputs/
 game-files/
 *.xex
