@@ -25,7 +25,7 @@ jobs:
           sudo apt-get install -y clang-18 ninja-build
           cmake --version
           clang-18 --version
-          cmake --version | head -n 1 | grep -E 'version 3\.(2[5-9]|[3-9][0-9])|version [4-9]\.' >/dev/null
+          cmake --version | head -n 1 | grep -E 'version 3\\.(2[5-9]|[3-9][0-9])|version [4-9]\\.' >/dev/null
 
       - name: Check out pinned ReXGlue SDK
         run: |
@@ -37,14 +37,18 @@ jobs:
           # ReXGlue v0.10.0's x86 host memory helpers use SSSE3/SSE4.1
           # intrinsics. Set these on the host compiler only; they are not
           # Android ARM64 flags and must never leak into the NDK build.
-          cmake -S thirdparty/rexglue-sdk -B out/build/rexglue-host -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=clang-18 \
-            -DCMAKE_CXX_COMPILER=clang++-18 \
-            -DCMAKE_CXX_FLAGS="-mssse3 -msse4.1" \
-            -DREXGLUE_ENABLE_TRACY=OFF \
-            -DREXGLUE_BUILD_TESTS=OFF \
-            -DREXGLUE_ENABLE_DESKTOP_SDL_BACKENDS=OFF
+          # Explicitly disable SDL's Linux desktop video backends so the
+          # headless host CLI does not require X11/Wayland development packages.
+          cmake -S thirdparty/rexglue-sdk -B out/build/rexglue-host -G Ninja \\
+            -DCMAKE_BUILD_TYPE=Release \\
+            -DCMAKE_C_COMPILER=clang-18 \\
+            -DCMAKE_CXX_COMPILER=clang++-18 \\
+            -DCMAKE_CXX_FLAGS="-mssse3 -msse4.1" \\
+            -DREXGLUE_ENABLE_TRACY=OFF \\
+            -DREXGLUE_BUILD_TESTS=OFF \\
+            -DREXGLUE_ENABLE_DESKTOP_SDL_BACKENDS=OFF \\
+            -DSDL_X11=OFF \\
+            -DSDL_WAYLAND=OFF
 
       - name: Build ReXGlue host CLI
         run: cmake --build out/build/rexglue-host --target rexglue --parallel 2
@@ -62,10 +66,10 @@ jobs:
 
       - name: Run host-native PowerPC core tests
         run: |
-          c++ -std=c++17 -Wall -Wextra -Wpedantic -Werror \
-            -I android/app/src/main/cpp \
-            android/app/src/main/cpp/ppc_core.cpp \
-            tests/native/ppc_core_tests.cpp \
+          c++ -std=c++17 -Wall -Wextra -Wpedantic -Werror \\
+            -I android/app/src/main/cpp \\
+            android/app/src/main/cpp/ppc_core.cpp \\
+            tests/native/ppc_core_tests.cpp \\
             -o /tmp/ppc_core_tests
           /tmp/ppc_core_tests
 
@@ -83,11 +87,11 @@ jobs:
       - name: Install Android SDK, NDK, and CMake
         run: |
           yes | sdkmanager --licenses
-          sdkmanager \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0" \
-            "ndk;27.2.12479018" \
+          sdkmanager \\
+            "platform-tools" \\
+            "platforms;android-35" \\
+            "build-tools;35.0.0" \\
+            "ndk;27.2.12479018" \\
             "cmake;3.22.1"
 
       - name: Set up Gradle 8.9
@@ -104,8 +108,8 @@ jobs:
         run: |
           set -euo pipefail
           GRADLE_FILE="android/app/build.gradle.kts"
-          VERSION_NAME=$(sed -n 's/.*versionName = "\(.*\)"/\1/p' "$GRADLE_FILE")
-          VERSION_CODE=$(sed -n 's/.*versionCode = \([0-9][0-9]*\).*/\1/p' "$GRADLE_FILE")
+          VERSION_NAME=$(sed -n 's/.*versionName = "\\(.*\\)"/\\1/p' "$GRADLE_FILE")
+          VERSION_CODE=$(sed -n 's/.*versionCode = \\([0-9][0-9]*\\).*/\\1/p' "$GRADLE_FILE")
           test -n "$VERSION_NAME"
           test -n "$VERSION_CODE"
 
