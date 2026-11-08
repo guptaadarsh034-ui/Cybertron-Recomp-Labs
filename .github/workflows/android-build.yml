@@ -2,7 +2,7 @@ name: Android ARM64 debug build
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/rexglue-android-integration]
     paths:
       - "android/**"
       - ".github/workflows/android-build.yml"
