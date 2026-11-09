@@ -1,6 +1,7 @@
 package com.cybertron.recomplabs
 
 import android.app.Activity
+import android.app.ActivityManager
 import android.content.Intent
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -58,6 +59,27 @@ class MainActivity : Activity() {
         identity.addView(text("Build ID: $BUILD_ID", 11f, MUTED, true), margin(4))
         identity.addView(text("Device ABI: ${android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "unknown"}", 12f, MUTED))
         page.addView(identity, margin(16))
+
+        val device = card()
+        device.addView(text("DEVICE CAPABILITY SNAPSHOT", 12f, CYAN, true), margin(8))
+        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        val socModel = if (android.os.Build.VERSION.SDK_INT >= 31) {
+            android.os.Build.SOC_MODEL.takeIf { it.isNotBlank() } ?: "Not reported by Android"
+        } else {
+            "Not exposed on this Android version"
+        }
+        device.addView(
+            text(
+                "SoC: $socModel\\nHardware: ${android.os.Build.HARDWARE}\\nAndroid API: ${android.os.Build.VERSION.SDK_INT}\\nMemory class: ${activityManager.memoryClass} MB\\nLow-RAM device: ${activityManager.isLowRamDevice}",
+                12f, MUTED
+            ),
+            margin(4)
+        )
+        device.addView(
+            text("These are Android-reported diagnostics, not a performance score. GPU driver, Vulkan features and sustained speed still require native profiling on the handset.", 11f, MUTED),
+            margin(4)
+        )
+        page.addView(device, margin(16))
 
         page.addView(text("01  /  GAME FILE CHECK", 12f, MUTED, true), margin(8))
         val select = actionButton("SELECT XEX AND CHECK BOOT READINESS", ORANGE)
