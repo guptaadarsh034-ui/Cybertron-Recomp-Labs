@@ -20,10 +20,18 @@ std::string run_synthetic_self_test() {
         0x00000000U, // unsupported word; must not execute
         0x38e00001U  // addi r7,r0,1
     };
-    const auto result = cybertron::ppc::run_program(program, 0U, 64U);
+    auto result = cybertron::ppc::run_program(program, 0U, 64U);
+    std::string memoryError;
+    const bool memoryExpanded = cybertron::ppc::resize_guest_memory(
+        result.cpu, 32U * 1024U * 1024U, memoryError);
+    const bool memoryRestored = memoryExpanded &&
+        cybertron::ppc::resize_guest_memory(
+            result.cpu, cybertron::ppc::kDefaultGuestMemorySize, memoryError);
     const bool passed = result.ok && result.executed == 7U &&
         result.cpu.gpr[5] == 12U && result.cpu.gpr[6] == 12U &&
-        result.cpu.gpr[7] == 1U && result.cpu.pc == 32U;
+        result.cpu.gpr[7] == 1U && result.cpu.pc == 32U &&
+        result.cpu.memory.size() == cybertron::ppc::kDefaultGuestMemorySize &&
+        memoryRestored;
 
     std::ostringstream out;
     out << "Synthetic PowerPC test: " << (passed ? "PASS" : "FAIL")
@@ -32,10 +40,14 @@ std::string run_synthetic_self_test() {
         << "\nr6 (lwz): " << result.cpu.gpr[6]
         << "\nr7 (branch target): " << result.cpu.gpr[7]
         << "\nGuest PC: 0x" << std::hex << result.cpu.pc
-        << "\nGuest memory: 4 KiB, big-endian"
+        << "\nGuest RAM: " << result.cpu.memory.size() / (1024U * 1024U)
+        << " MiB initially mapped (expandable to 512 MiB)"
+        << "\nRAM grow/shrink self-test: " << (memoryRestored ? "PASS" : "FAIL")
+        << "\nMemory model: contiguous, big-endian 32-bit accesses"
         << "\nImplemented subset: addi, addis, ori, oris, add, lwz, stw, b"
         << "\nTarget ABI: arm64-v8a";
     if (!result.ok) out << "\nRuntime error: " << result.error;
+    if (!memoryRestored) out << "\nRAM resize error: " << memoryError;
     if (!passed) out << "\nExpected executed=7, r5=12, r6=12, r7=1, PC=0x20";
     return out.str();
 }
