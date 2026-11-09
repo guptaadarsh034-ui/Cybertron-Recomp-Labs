@@ -23,7 +23,8 @@ std::string run_synthetic_self_test() {
     const auto result = cybertron::ppc::run_program(program, 0U, 64U);
     const bool passed = result.ok && result.executed == 7U &&
         result.cpu.gpr[5] == 12U && result.cpu.gpr[6] == 12U &&
-        result.cpu.gpr[7] == 1U && result.cpu.pc == 32U;
+        result.cpu.gpr[7] == 1U && result.cpu.pc == 32U &&
+        result.cpu.memory.size() == cybertron::ppc::kDefaultGuestMemorySize;
 
     std::ostringstream out;
     out << "Synthetic PowerPC test: " << (passed ? "PASS" : "FAIL")
