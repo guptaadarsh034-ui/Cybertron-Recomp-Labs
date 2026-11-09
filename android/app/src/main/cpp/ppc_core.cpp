@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <iomanip>
 #include <limits>
+#include <new>
+#include <stdexcept>
 #include <sstream>
 
 namespace cybertron::ppc {
@@ -17,9 +19,13 @@ bool effective_address(const CpuState& cpu, std::uint32_t ra,
                        std::string& error) {
     const std::uint32_t base = ra == 0 ? 0U : cpu.gpr[ra];
     const std::int64_t sum = static_cast<std::int64_t>(base) + displacement;
-    if (sum < 0 || sum > static_cast<std::int64_t>(kGuestMemorySize - 4)) {
+    if (sum < 0 ||
+        cpu.memory.size() < 4U ||
+        static_cast<std::uint64_t>(sum) >
+            static_cast<std::uint64_t>(cpu.memory.size() - 4U)) {
         std::ostringstream out;
-        out << "Guest memory access out of range: 0x" << std::hex << sum;
+        out << "Guest memory access out of range: 0x" << std::hex << sum
+            << " (mapped RAM: " << std::dec << cpu.memory.size() << " bytes)";
         error = out.str();
         return false;
     }
@@ -40,6 +46,28 @@ std::uint32_t sign_extend_branch_26(std::uint32_t instruction) {
 }
 
 } // namespace
+
+bool resize_guest_memory(CpuState& cpu, std::size_t bytes, std::string& error) {
+    if (bytes == 0U || bytes > kMaximumGuestMemorySize) {
+        std::ostringstream out;
+        out << "Requested guest RAM size " << bytes
+            << " is outside the supported range (1.."
+            << kMaximumGuestMemorySize << " bytes)";
+        error = out.str();
+        return false;
+    }
+    try {
+        cpu.memory.resize(bytes, 0U);
+        error.clear();
+        return true;
+    } catch (const std::bad_alloc&) {
+        error = "Not enough host memory to allocate the requested guest RAM";
+        return false;
+    } catch (const std::length_error&) {
+        error = "Requested guest RAM size cannot be represented by this runtime";
+        return false;
+    }
+}
 
 StepResult execute_one(CpuState& cpu, std::uint32_t instruction) {
     if ((cpu.pc & (kInstructionAlignment - 1U)) != 0U) {
