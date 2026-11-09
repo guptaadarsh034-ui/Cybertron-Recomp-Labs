@@ -33,7 +33,9 @@ std::string run_synthetic_self_test() {
         << "\nr6 (lwz): " << result.cpu.gpr[6]
         << "\nr7 (branch target): " << result.cpu.gpr[7]
         << "\nGuest PC: 0x" << std::hex << result.cpu.pc
-        << "\nGuest memory: 4 KiB, big-endian"
+        << "\nGuest RAM: " << result.cpu.memory.size() / (1024U * 1024U)
+        << " MiB initially mapped (expandable to 512 MiB)"
+        << "\nMemory model: contiguous, big-endian 32-bit accesses"
         << "\nImplemented subset: addi, addis, ori, oris, add, lwz, stw, b"
         << "\nTarget ABI: arm64-v8a";
     if (!result.ok) out << "\nRuntime error: " << result.error;
