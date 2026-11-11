@@ -13,7 +13,9 @@ permissions:
 
 jobs:
   rexglue-host-toolchain:
-    # ReXGlue v0.10.0 requires CMake >= 3.25, Clang >= 18, and C++23.
+    # ReXGlue is an optional research toolchain and is not required to package the Android diagnostic APK.
+    # Keep its failures visible without allowing them to mark an otherwise valid APK build as failed.
+    continue-on-error: true
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
