@@ -19,7 +19,7 @@ The project owner supplied the device and OS details. Confirm the runtime ABI on
 - Pin the Android NDK to `27.2.12479018` so local and CI native builds use the same toolchain.
 - Enable `ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES` for 16 KiB page-size-compatible native output.
 - The CI workflow checks APK ZIP alignment with `zipalign -P 16` and checks the native ELF LOAD segment alignment.
-- The app currently compiles against SDK 35 and targets SDK 35. This does not prevent installation on Android 16; it means this milestone is an Android 16 runtime-compatibility test, not an API-36-targeted app.
+- The app compiles against Android SDK 36 and targets API 36. The CI toolchain uses Android Gradle Plugin 8.10.1 and Gradle 8.11.1, alongside the pinned NDK.
 
 ## First phone test checklist
 
