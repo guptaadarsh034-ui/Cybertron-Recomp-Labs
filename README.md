@@ -2,7 +2,7 @@
 
 Research project exploring the feasibility of running **Transformers: War for Cybertron (Xbox 360)** on native Android ARM64 through static recompilation.
 
-> **Status: Early research / proof-of-concept planning.** This repository does not contain a working port, and a successful port is not guaranteed.
+> **Current status: Android diagnostic prototype v0.6.0.** The repository contains an Android ARM64 app shell with a native synthetic PowerPC self-test and a local XEX structural preflight. It is not a playable game port, and a successful port is not guaranteed.
 
 ## Goals
 
@@ -38,12 +38,11 @@ Milestones will be marked complete only when results and reproducible evidence a
 
 ## Repository structure
 
-The project will grow incrementally. Suggested areas:
-
 - `docs/` — research notes, architecture, and decision records.
 - `tools/` — small analysis utilities that do not redistribute game content.
 - `experiments/` — isolated tests using synthetic or original test data.
 - `tests/` — automated checks for project-owned code.
+- `android/` — Android ARM64 diagnostic application and native JNI runtime.
 
 ## Legal and safety boundaries
 
@@ -68,13 +67,23 @@ Run its unit tests from the repository root:
 python -m unittest discover -s tests -v
 ```
 
-The inspector currently recognizes a small subset including `addi`, `addis`, `ori`, `oris`, `lwz`, `stw`, `b`, `bc`, `bclr`, and `nop`. Unknown words are preserved as `.long` output rather than guessed. This is a learning/test harness only; it does not read game files or produce executable native code.
+Unknown words are preserved as `.long` output rather than guessed. This is a learning/test harness only; it does not read game files or produce executable native code.
 
-## Android ARM64 prototype
+## Android ARM64 diagnostic app
 
-The Android app is under [android/](android/). Version **0.3.0** includes a synthetic PowerPC interpreter self-test and a local executable preflight screen. The preflight reads only a selected file's name, reported size, and first four bytes, identifying an `XEX2` signature when present. It does not upload, parse, decrypt, recompile, or execute the file.
+The Android app is under [android/](android/). Version **0.6.0** contains:
 
-This app is not a static recompiler, Xbox 360 emulator, XEX loader, or playable game build. A recognized XEX2 signature does not mean the game can boot. See [Android ARM64 Milestone 3](docs/android-arm64-milestone-3.md) for scope and limitations. GitHub Actions packages a versioned ARM64 APK and ZIP; successful CI means compilation and packaging only, not phone runtime validation.
+- A launcher activity and a dark diagnostic UI.
+- A JNI bridge to the native C++ PowerPC test runtime.
+- A synthetic PowerPC self-test using project-owned instruction words.
+- A local document-picker flow for limited XEX/PE structural preflight checks.
+- Explicit status text explaining that the game cannot boot in this build.
+
+The preflight reads the selected file locally. It does not upload, decrypt, decompress, or execute the game. A passing XEX check is not a compatibility verdict.
+
+**APK milestone definition:** a successful CI run must compile the native ARM64 library, run host-native PowerPC regression tests, assemble the Android debug APK, verify its package/version metadata, and upload the APK artifact. This proves compilation and packaging only. A separate install-and-launch check on a real ARM64 phone is still required before claiming device boot validation.
+
+This app is not a static recompiler, Xbox 360 emulator, complete XEX loader, or playable game build. See [Android ARM64 Milestone 3](docs/android-arm64-milestone-3.md) and [First boot-preflight APK v0.6.0](docs/first-boot-preflight-v0.6.0.md).
 
 ## Upstream toolchain research
 
@@ -82,7 +91,7 @@ See [upstream-tools.md](docs/upstream-tools.md) for the first comparison of Xbox
 
 ## Current next step
 
-Start with a written executable-identification report: file extension, file size, and locally observed file signature. Keep the actual game file private. No claims of successful recompilation or Android compatibility should be made until demonstrated by a reproducible test.
+Produce a reproducible Android debug APK, install it on the target ARM64 phone, confirm that the launcher activity opens, and run the JNI synthetic PowerPC self-test. Keep the actual game file private. No claims of successful game recompilation or Android game compatibility should be made until demonstrated by a reproducible test.
 
 ## Contributions
 
