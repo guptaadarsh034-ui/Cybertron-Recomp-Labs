@@ -1,104 +1,61 @@
 name: Android ARM64 first APK build
-
 on:
   push:
-    branches:
-      - main
-      - nexusdev/first-bootable-apk
-    paths:
-      - "android/**"
-      - ".github/workflows/android-build.yml"
+    branches: [main, nexusdev/first-bootable-apk]
+    paths: ["android/**", ".github/workflows/android-build.yml"]
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
   rexglue-host-toolchain:
-    # Optional research toolchain; it is not needed to package the Android APK.
     continue-on-error: true
     runs-on: ubuntu-24.04
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Install pinned host compiler and build tools
+      - uses: actions/checkout@v4
+      - name: Install host tools
         run: |
           sudo apt-get update
           sudo apt-get install -y clang-18 ninja-build
           cmake --version
           clang-18 --version
-          cmake --version | head -n 1 | grep -E 'version 3\\.(2[5-9]|[3-9][0-9])|version [4-9]\\.' >/dev/null
-
       - name: Check out pinned ReXGlue SDK
         run: |
           git clone --depth 1 --branch v0.10.0 https://github.com/rexglue/rexglue-sdk.git thirdparty/rexglue-sdk
           git -C thirdparty/rexglue-sdk submodule update --init --recursive --depth 1
-
-      - name: Configure ReXGlue host CLI
-        run: |
-          cmake -S thirdparty/rexglue-sdk -B out/build/rexglue-host -G Ninja \\
-            -DCMAKE_BUILD_TYPE=Release \\
-            -DCMAKE_C_COMPILER=clang-18 \\
-            -DCMAKE_CXX_COMPILER=clang++-18 \\
-            -DREXGLUE_ENABLE_TRACY=OFF \\
-            -DREXGLUE_BUILD_TESTS=OFF \\
-            -DREXGLUE_ENABLE_DESKTOP_SDL_BACKENDS=OFF
-
-      - name: Build ReXGlue host CLI
+      - name: Configure ReXGlue
+        run: cmake -S thirdparty/rexglue-sdk -B out/build/rexglue-host -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DREXGLUE_ENABLE_TRACY=OFF -DREXGLUE_BUILD_TESTS=OFF -DREXGLUE_ENABLE_DESKTOP_SDL_BACKENDS=OFF
+      - name: Build ReXGlue
         run: cmake --build out/build/rexglue-host --target rexglue --parallel 2
-
-      - name: Smoke-test ReXGlue CLI
+      - name: Smoke-test ReXGlue
         run: |
           test -x thirdparty/rexglue-sdk/out/linux-amd64/rexglue
           thirdparty/rexglue-sdk/out/linux-amd64/rexglue --help
-
   android-debug:
     name: Build and package installable ARM64 APK
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Run host-native PowerPC core tests
+      - uses: actions/checkout@v4
+      - name: Run native PowerPC tests
         run: |
-          c++ -std=c++17 -Wall -Wextra -Wpedantic -Werror \\
-            -I android/app/src/main/cpp \\
-            android/app/src/main/cpp/ppc_core.cpp \\
-            tests/native/ppc_core_tests.cpp \\
-            -o /tmp/ppc_core_tests
+          c++ -std=c++17 -Wall -Wextra -Wpedantic -Werror -I android/app/src/main/cpp android/app/src/main/cpp/ppc_core.cpp tests/native/ppc_core_tests.cpp -o /tmp/ppc_core_tests
           /tmp/ppc_core_tests
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
-
       - name: Install Android SDK, NDK, and CMake
         run: |
           yes | sdkmanager --licenses
-          sdkmanager \\
-            "platform-tools" \\
-            "platforms;android-36" \\
-            "build-tools;36.0.0" \\
-            "ndk;27.2.12479018" \\
-            "cmake;3.22.1"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.11.1"
-
-      - name: Build Android ARM64 debug APK
+      - name: Build ARM64 debug APK
         run: gradle -p android :app:assembleDebug --no-build-cache --rerun-tasks --stacktrace
-
-      - name: Verify APK alignment and native libraries
+      - name: Verify 16 KiB alignment and native libraries
         run: |
           set -euo pipefail
           APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
@@ -112,8 +69,7 @@ jobs:
             echo "Checking ELF LOAD alignment: $so"
             readelf -lW "$so" | awk '$1 == "LOAD" && $NF ~ /^0x0*(4000|8000|10000)$/ { ok=1 } END { exit !ok }'
           done < <(find /tmp/cybertron-apk/lib/arm64-v8a -name '*.so')
-
-      - name: Verify APK metadata and assemble download bundle
+      - name: Verify metadata and prepare download files
         id: package
         shell: bash
         run: |
@@ -123,28 +79,24 @@ jobs:
           VERSION_CODE=$(sed -n 's/.*versionCode = \([0-9][0-9]*\).*/\1/p' "$GRADLE_FILE")
           test -n "$VERSION_NAME"
           test -n "$VERSION_CODE"
-
           APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
           AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
           BADGING=$("$AAPT" dump badging "$APK_PATH")
           echo "$BADGING" | grep -F "versionCode='$VERSION_CODE'" >/dev/null
           echo "$BADGING" | grep -F "versionName='$VERSION_NAME'" >/dev/null
           echo "$BADGING" | grep -F "package: name='com.cybertron.recomplabs'" >/dev/null
-
           mkdir -p dist
           APK_NAME="cybertron-recomp-labs-v${VERSION_NAME}-android-arm64-debug.apk"
           cp "$APK_PATH" "dist/$APK_NAME"
           cat > dist/INSTALL.txt <<'EOF'
           Cybertron Recomp Labs — first Android diagnostic APK
-
           Device target: Android 16, arm64-v8a
           Package: com.cybertron.recomplabs
           Build type: debug
           This is a diagnostic shell and native PowerPC self-test, not a playable
           Transformers: War for Cybertron port.
-
-          Install the APK on the OPPO F29 5G after downloading it. Android may
-          ask you to allow installation from the browser or file manager.
+          Install on the OPPO F29 5G after downloading. Android may ask you to
+          allow installation from the browser or file manager.
           EOF
           {
             echo "versionName=$VERSION_NAME"
@@ -159,24 +111,20 @@ jobs:
           } > dist/BUILD-INFO.txt
           (cd dist && sha256sum "$APK_NAME" > SHA256SUMS)
           (cd dist && zip -j "cybertron-recomp-labs-v${VERSION_NAME}-android-arm64-bundle.zip" "$APK_NAME" INSTALL.txt BUILD-INFO.txt SHA256SUMS)
-
           {
             echo "## Android APK build outputs"
             echo ""
-            echo "- APK: `$APK_NAME`"
-            echo "- Bundle ZIP: `cybertron-recomp-labs-v${VERSION_NAME}-android-arm64-bundle.zip`"
-            echo "- Package: `com.cybertron.recomplabs`"
-            echo "- ABI: `arm64-v8a`"
-            echo "- Target SDK: `36`"
+            echo "- APK: $APK_NAME"
+            echo "- Package: com.cybertron.recomplabs"
+            echo "- ABI: arm64-v8a"
+            echo "- Target SDK: 36"
             echo ""
-            echo "Download the APK directly from the **Artifacts** section below."
+            echo "Download the APK from the **Artifacts** section below."
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "version=$VERSION_NAME" >> "$GITHUB_OUTPUT"
-
-      - name: Upload APK and supporting first-build files
+      - name: Upload APK and supporting files
         uses: actions/upload-artifact@v4
         with:
-          name: cybertron-first-bootable-apk-v${{ steps.package.outputs.version }}-android-arm64
+          name: cybertron-first-bootable-apk-android-arm64
           path: |
             dist/*.apk
             dist/*.zip
