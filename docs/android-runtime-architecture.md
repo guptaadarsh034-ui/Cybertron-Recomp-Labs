@@ -1,66 +1,68 @@
 # Android ARM64 Runtime Architecture
 
-## Target and scope
+## Target and current milestone
 
-- Target device: OPPO F29 5G, 8 GB RAM, 256 GB storage.
 - Target platform: Android on ARM64 (AArch64).
-- First milestone: execute a tiny synthetic PowerPC program in a project-owned interpreter and verify its register results.
-- Current status: initial host-buildable interpreter prototype; not an Android app, XEX loader, or game boot.
+- Android application ID: `com.cybertron.recomplabs`.
+- Current diagnostic app version: 0.6.0.
+- Current milestone: a bootable Android diagnostic shell that calls a small native PowerPC interpreter through JNI and performs limited, local XEX/PE structural checks.
+- This is not yet a game runtime, static recompiler, Xbox 360 emulator, or playable port.
 
 The exact SoC, Android version, ABI availability, and GPU capabilities must be measured on the target device rather than assumed from the marketing name.
 
-## Layered design
+## Current layered design
 
 ```text
-Android UI / diagnostics (future)
+Android launcher activity / diagnostic UI
+  - app identity and build information
+  - local document picker
+  - synthetic CPU self-test action
           |
-JNI boundary (future)
+          +---- XEX structural preflight (Kotlin)
           |
-Native ARM64 runtime (Android NDK, future)
-          |
-PowerPC execution engine
-  - instruction decode
-  - guest CPU state
-  - control flow
-  - memory subsystem (not implemented)
-          |
-Xbox 360 compatibility services (future)
-  - guest kernel APIs
-  - file / threading / synchronization
-  - graphics and audio interfaces
-          |
-Android platform services (future)
+          +---- JNI boundary
+                    |
+              Native ARM64 library
+                - synthetic test program
+                - PowerPC interpreter core
+                    |
+              Guest CPU state / limited instruction subset
 ```
 
-## Repository components
+## Current repository components
 
-- `runtime/ppc/`: minimal C++ interpreter and synthetic smoke test.
+- `android/app/src/main/java/com/cybertron/recomplabs/MainActivity.kt`: Android launcher and diagnostic UI.
+- `android/app/src/main/java/com/cybertron/recomplabs/XexInspector.kt`: bounded local structural preflight for selected files.
+- `android/app/src/main/cpp/ppc_runtime.cpp`: JNI entry point and synthetic test harness.
+- `android/app/src/main/cpp/ppc_core.cpp` and `ppc_core.hpp`: small PowerPC interpreter core.
 - `tools/ppc_inspect.py`: separate educational word-inspection tool.
-- `tests/`: Python tests for the inspector.
-- `.devcontainer/`: browser-based development environment.
+- `tests/`: regression tests using project-owned synthetic inputs.
 
-## First milestone acceptance criteria
+## First APK acceptance criteria
 
-1. Compile the C++ interpreter with a standard C++17 compiler.
-2. Execute a synthetic three-instruction PowerPC program.
-3. Verify that registers r3, r4, and r5 contain 40, 2, and 42.
-4. Report unsupported instructions rather than silently guessing their behavior.
-5. Run the same core in an Android ARM64 app in a later NDK integration milestone.
+1. Compile the native runtime for `arm64-v8a` with the Android NDK.
+2. Assemble the Android debug APK with Gradle.
+3. Verify the APK package name and version metadata.
+4. Install the APK on a real ARM64 Android device.
+5. Confirm the launcher activity opens without crashing.
+6. Run the JNI synthetic PowerPC self-test and record its output.
+7. Confirm that local XEX preflight reports only the limited checks actually implemented.
+
+CI success proves the build and packaging checks only. Device installation, launch, and JNI interaction require a separate real-device test.
 
 ## Deliberate limitations
 
-This prototype supports only a tiny instruction subset: `addi`, `addis`, `ori`, `add`, and a basic unconditional branch. It has no guest memory, exception model, floating-point unit, VMX/VMX128, system calls, thread scheduler, XEX parsing, import resolution, or graphics/audio implementation. It is not suitable for loading commercial game code.
+The current interpreter supports only a tiny subset of PowerPC instructions. It does not implement the complete CPU architecture, VMX/VMX128, full memory and exception behavior, Xbox kernel APIs, import resolution, guest threading, XEX security/decompression, Xenos graphics, or the Xbox audio stack. The current app does not execute game code.
 
-The first branch implementation is intentionally minimal and does not yet model link-register semantics. The interpreter must gain a complete, tested CPU state and memory model before it can be used as a foundation for a real static recompiler.
+A passing XEX structural check does not mean the file can boot. A successful Android APK build does not mean the game can run.
 
-## Next milestones
+## Next engineering milestones
 
-- Add a bounded guest-memory abstraction and load/store instructions.
-- Add condition register and link register state, then correct branch semantics.
-- Expand instruction coverage with reference-based tests.
-- Add a small Android NDK app that invokes the same native core through JNI.
-- Record device ABI, Android API level, available memory, and graphics capabilities from the OPPO device.
-- Investigate executable formats and runtime imports using synthetic fixtures and public documentation only.
+1. Verify the v0.6.0 APK builds and installs on the target device.
+2. Record device ABI, Android API level, memory, and GPU capabilities.
+3. Expand the synthetic PowerPC core with bounded guest memory, condition-register and link-register state, and reference-based tests.
+4. Investigate XEX/PE loading with synthetic fixtures and public documentation.
+5. Define the minimum Xbox runtime and graphics compatibility surface before attempting game execution.
 
 ## Legal boundary
 
