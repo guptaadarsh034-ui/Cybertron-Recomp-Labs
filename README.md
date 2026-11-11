@@ -77,13 +77,14 @@ The Android app is under [android/](android/). Version **0.6.0** contains:
 - A JNI bridge to the native C++ PowerPC test runtime.
 - A synthetic PowerPC self-test using project-owned instruction words.
 - A local document-picker flow for limited XEX/PE structural preflight checks.
+- A pinned ARM64 NDK configuration with flexible 16 KiB page-size support and CI alignment checks for Android 16-era devices.
 - Explicit status text explaining that the game cannot boot in this build.
 
 The preflight reads the selected file locally. It does not upload, decrypt, decompress, or execute the game. A passing XEX check is not a compatibility verdict.
 
 **APK milestone definition:** a successful CI run must compile the native ARM64 library, run host-native PowerPC regression tests, assemble the Android debug APK, verify its package/version metadata, and upload the APK artifact. This proves compilation and packaging only. A separate install-and-launch check on a real ARM64 phone is still required before claiming device boot validation.
 
-This app is not a static recompiler, Xbox 360 emulator, complete XEX loader, or playable game build. See [Android ARM64 Milestone 3](docs/android-arm64-milestone-3.md) and [First boot-preflight APK v0.6.0](docs/first-boot-preflight-v0.6.0.md).
+This app is not a static recompiler, Xbox 360 emulator, complete XEX loader, or playable game build. See [Android ARM64 Milestone 3](docs/android-arm64-milestone-3.md), [First boot-preflight APK v0.6.0](docs/first-boot-preflight-v0.6.0.md), and the [OPPO F29 5G / Android 16 validation plan](docs/oppo-f29-android16-validation.md).
 
 ## Upstream toolchain research
 
