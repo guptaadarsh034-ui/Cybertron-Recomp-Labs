@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace = "com.cybertron.recomplabs"
-    compileSdk = 35
+    compileSdk = 36
     // Pin the NDK used by CI so ARM64 output is reproducible.
     ndkVersion = "27.2.12479018"
 
     defaultConfig {
         applicationId = "com.cybertron.recomplabs"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 6
         versionName = "0.6.0"
         ndk { abiFilters += listOf("arm64-v8a") }
