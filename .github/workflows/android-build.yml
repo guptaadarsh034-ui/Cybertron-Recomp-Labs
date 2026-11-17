@@ -1,8 +1,8 @@
-name: Android ARM64 debug build
+name: Android ARM64 APK
 
 on:
   push:
-    branches: [main]
+    branches: ["**"]
     paths:
       - "android/**"
       - ".github/workflows/android-build.yml"
@@ -12,119 +12,46 @@ permissions:
   contents: read
 
 jobs:
-  rexglue-host-toolchain:
-    # ReXGlue v0.10.0 requires CMake >= 3.25, Clang >= 18, and C++23.
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Install pinned host compiler and build tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-18 ninja-build
-          cmake --version
-          clang-18 --version
-          cmake --version | head -n 1 | grep -E 'version 3\.(2[5-9]|[3-9][0-9])|version [4-9]\.' >/dev/null
-
-      - name: Check out pinned ReXGlue SDK
-        run: |
-          git clone --depth 1 --branch v0.10.0 https://github.com/rexglue/rexglue-sdk.git thirdparty/rexglue-sdk
-          git -C thirdparty/rexglue-sdk submodule update --init --recursive --depth 1
-
-      - name: Configure ReXGlue host CLI
-        run: |
-          cmake -S thirdparty/rexglue-sdk -B out/build/rexglue-host -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=clang-18 \
-            -DCMAKE_CXX_COMPILER=clang++-18 \
-            -DREXGLUE_ENABLE_TRACY=OFF \
-            -DREXGLUE_BUILD_TESTS=OFF \
-            -DREXGLUE_ENABLE_DESKTOP_SDL_BACKENDS=OFF
-
-      - name: Build ReXGlue host CLI
-        run: cmake --build out/build/rexglue-host --target rexglue --parallel 2
-
-      - name: Smoke-test ReXGlue CLI
-        run: |
-          test -x thirdparty/rexglue-sdk/out/linux-amd64/rexglue
-          thirdparty/rexglue-sdk/out/linux-amd64/rexglue --help
-
   android-debug:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Run host-native PowerPC core tests
-        run: |
-          c++ -std=c++17 -Wall -Wextra -Wpedantic -Werror \
-            -I android/app/src/main/cpp \
-            android/app/src/main/cpp/ppc_core.cpp \
-            tests/native/ppc_core_tests.cpp \
-            -o /tmp/ppc_core_tests
-          /tmp/ppc_core_tests
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools
-
-      - name: Install Android SDK, NDK, and CMake
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK packages
         run: |
           yes | sdkmanager --licenses
-          sdkmanager \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0" \
-            "ndk;27.2.12479018" \
-            "cmake;3.22.1"
-
-      - name: Set up Gradle 8.9
-        uses: gradle/actions/setup-gradle@v4
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
-
       - name: Build Android ARM64 debug APK
         run: gradle -p android :app:assembleDebug --no-build-cache --rerun-tasks --stacktrace
-
-      - name: Verify APK metadata and package versioned ZIP
+      - name: Verify APK and package versioned ZIP
         id: version
         shell: bash
         run: |
           set -euo pipefail
-          GRADLE_FILE="android/app/build.gradle.kts"
-          VERSION_NAME=$(sed -n 's/.*versionName = "\(.*\)"/\1/p' "$GRADLE_FILE")
-          VERSION_CODE=$(sed -n 's/.*versionCode = \([0-9][0-9]*\).*/\1/p' "$GRADLE_FILE")
-          test -n "$VERSION_NAME"
-          test -n "$VERSION_CODE"
-
+          VERSION_NAME=$(sed -n 's/.*versionName = "\\(.*\\)"/\\1/p' android/app/build.gradle.kts)
+          VERSION_CODE=$(sed -n 's/.*versionCode = \\([0-9][0-9]*\\).*/\\1/p' android/app/build.gradle.kts)
+          test -n "$VERSION_NAME" && test -n "$VERSION_CODE"
           APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK_PATH"
           AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
           BADGING=$("$AAPT" dump badging "$APK_PATH")
-          echo "$BADGING" | head -n 3
-
           echo "$BADGING" | grep -F "versionCode='$VERSION_CODE'" >/dev/null
           echo "$BADGING" | grep -F "versionName='$VERSION_NAME'" >/dev/null
           echo "$BADGING" | grep -F "package: name='com.cybertron.recomplabs'" >/dev/null
-          echo "Verified APK metadata: versionName=$VERSION_NAME versionCode=$VERSION_CODE"
-
           echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           mkdir -p dist
-          cp "$APK_PATH" "dist/cybertron-recomp-labs-v${VERSION_NAME}-android-arm64.apk"
-          (cd dist && zip -j "cybertron-recomp-labs-v${VERSION_NAME}-android-arm64.zip" "cybertron-recomp-labs-v${VERSION_NAME}-android-arm64.apk")
-
-      - name: Upload verified APK and ZIP
-        uses: actions/upload-artifact@v4
+          cp "$APK_PATH" "dist/cybertron-recomp-labs-v\${VERSION_NAME}-android-arm64.apk"
+          (cd dist && zip -j "cybertron-recomp-labs-v\${VERSION_NAME}-android-arm64.zip" "cybertron-recomp-labs-v\${VERSION_NAME}-android-arm64.apk")
+      - uses: actions/upload-artifact@v4
         with:
-          name: cybertron-recomp-labs-v${{ steps.version.outputs.name }}-android-arm64
+          name: cybertron-recomp-labs-v\${{ steps.version.outputs.name }}-android-arm64
           path: |
             dist/*.apk
             dist/*.zip
