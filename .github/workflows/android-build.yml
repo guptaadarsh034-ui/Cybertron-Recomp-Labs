@@ -20,11 +20,11 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: android-actions/setup-android@v3
-      - name: Install Android SDK packages
-        run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: true
+          packages: "platform-tools,platforms;android-35,build-tools;35.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
@@ -34,8 +34,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION_NAME=$(sed -n 's/.*versionName = "\\(.*\\)"/\\1/p' android/app/build.gradle.kts)
-          VERSION_CODE=$(sed -n 's/.*versionCode = \\([0-9][0-9]*\\).*/\\1/p' android/app/build.gradle.kts)
+          VERSION_NAME=$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' android/app/build.gradle.kts)
+          VERSION_CODE=$(sed -n 's/.*versionCode = \([0-9][0-9]*\).*/\1/p' android/app/build.gradle.kts)
           test -n "$VERSION_NAME" && test -n "$VERSION_CODE"
           APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK_PATH"
