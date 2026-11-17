@@ -14,43 +14,62 @@ permissions:
 jobs:
   android-debug:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-      - name: Set up Android SDK command-line tools
-        uses: android-actions/setup-android@v3
-        with:
-          accept-android-sdk-licenses: true
-      - name: Install required Android SDK packages
+
+      - name: Locate Android SDK tools
         shell: bash
         run: |
           set -euo pipefail
-          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          test -d "$ANDROID_HOME"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          test -x "$SDKMANAGER"
+          echo "$(dirname "$SDKMANAGER")" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+
+      - name: Install Android SDK packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          test -d "$ANDROID_HOME/platforms/android-35"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt"
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
-      - name: Build Android ARM64 debug APK
+
+      - name: Build Android debug APK
         run: gradle -p android :app:assembleDebug --no-build-cache --rerun-tasks --stacktrace
-      - name: Verify APK and package versioned ZIP
+
+      - name: Verify APK and create versioned downloads
         shell: bash
         run: |
           set -euo pipefail
           VERSION_NAME=$(sed -n 's/.*versionName = "\\([^"]*\\)".*/\\1/p' android/app/build.gradle.kts)
           VERSION_CODE=$(sed -n 's/.*versionCode = \\([0-9][0-9]*\\).*/\\1/p' android/app/build.gradle.kts)
-          test -n "$VERSION_NAME" && test -n "$VERSION_CODE"
+          test -n "$VERSION_NAME"
+          test -n "$VERSION_CODE"
           APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK_PATH"
-          AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
-          BADGING=$("$AAPT" dump badging "$APK_PATH")
+          BADGING=$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK_PATH")
           echo "$BADGING" | grep -F "versionCode='$VERSION_CODE'" >/dev/null
           echo "$BADGING" | grep -F "versionName='$VERSION_NAME'" >/dev/null
           echo "$BADGING" | grep -F "package: name='com.cybertron.recomplabs'" >/dev/null
           mkdir -p dist
           cp "$APK_PATH" "dist/cybertron-recomp-labs-v$VERSION_NAME-android-arm64.apk"
           (cd dist && zip -j "cybertron-recomp-labs-v$VERSION_NAME-android-arm64.zip" "cybertron-recomp-labs-v$VERSION_NAME-android-arm64.apk")
+
       - uses: actions/upload-artifact@v4
         with:
           name: cybertron-recomp-labs-v0.7.0-android-arm64
